@@ -48,6 +48,10 @@ for df in df_list:
 df_all_roads.columns = ['Road' ,'Discription' ,'LRP', 'Offset', 'Chainage', 'LRP2' ,'Offset2', 'Chainage2' ,'(Km)' ,
  'Heavy Truck' ,'Medium Truck' ,'Small Truck', 'Large Bus', 'Medium Bus',
  'Micro Bus', 'Utility', 'Car', 'Auto Rickshaw' ,'Motor Cycle', 'Bi-Cycle',
- 'Cycle Rickshaw', 'Cart' ,'Motorized', 'Non Motorized', 'Total AADT' ,'(AADT)']
+ 'Cycle Rickshaw', 'Cart' ,'Motorized', 'Non Motorized', 'Total AADT' ,'(AADT)'] # 'Road Simple'
 
 print(f"During parsing {error_count} roads were empty")
+
+df_all_roads['Simple Road'] = df_all_roads['Road'].str.split('-', expand=True)[0]
+
+df_all_roads.to_csv('./data/all_traffic_info.csv')
