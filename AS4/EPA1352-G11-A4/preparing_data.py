@@ -32,21 +32,12 @@ def filter_roads():
     print('All relevant roads are being identified based on length and the casus.')
 
     # Filters the roads based on the condition that the length needs to be >25km. Appends the relevant roads to a list
-    long_roads = []
-    for i in unique_roads:
-        df_road_temp = df_roads[df_roads['road'] == i]
-        if df_road_temp["chainage"].iloc[-1] >= 25:
-            long_roads.append(i)
+    #long_roads = long_roads(df_roads)
 
     # Filters the roads based on the casus. Appends the relevant roads to a list
-    casus_roads = ['N1', 'N2']
-    global relevant_roads
-    relevant_roads = []
-    for i in long_roads:
-        df_road_temp = df_roads[df_roads['road'] == i]
-        for j in casus_roads:
-            if df_road_temp['road'].str.contains(j).any():
-                relevant_roads.append(i)
+    #relevant_roads = casus_roads(long_roads)
+
+    relevant_roads = unique_roads #whole network
 
     print(f'In total there are {len(relevant_roads)} relevant roads found, which are: {relevant_roads}.')
     print(f'The pre-processing of each road is done separately.')
@@ -56,6 +47,27 @@ def filter_roads():
         print(f'The road that is pre-processed now, is: {i}.')
         df_road_temp = df_roads[df_roads['road'] == i]
         prepare_data(df_road_temp)
+
+def long_roads(df_road):
+    long_roads = []
+    for i in unique_roads:
+        df_road_temp = df_roads[df_roads['road'] == i]
+        if df_road_temp["chainage"].iloc[-1] >= 25:
+            long_roads.append(i)
+
+    return long_roads
+
+def casus_roads(long_roads):
+    casus_roads = ['N1', 'N2']
+    global relevant_roads
+    relevant_roads = []
+    for i in long_roads:
+        df_road_temp = df_roads[df_roads['road'] == i]
+        for j in casus_roads:
+            if df_road_temp['road'].str.contains(j).any():
+                relevant_roads.append(i)
+
+    return relevant_roads
 
 def add_columns(df_road):
     """
@@ -344,11 +356,11 @@ def save_data(df):
     Saves the files
     '''
     # Write the dataframe to csv
-    df.to_csv('./data/demo_all_roads_LB.csv')
+    df.to_csv('./data/whole_network_LB.csv')
 
     # Make compact datafile and export to csv
     df_all_roads_compact = df.loc[:, model_columns]
-    df_all_roads_compact.to_csv('./data/demo_all_roads_compact_LB.csv')
+    df_all_roads_compact.to_csv('./data/whole_network_compact_LB.csv')
 
 # Run the prepare data function
 filter_roads() # calls prepare_data function
