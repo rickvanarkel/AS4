@@ -350,7 +350,7 @@ def combine_data():
 
     print('The data is pre-processed and available for the next step.')
 
-model_columns = ['road', 'id', 'model_type', 'name', 'lat', 'lon', 'length', 'condition', 'bridge_length'] # 'road_name'
+model_columns = ['road', 'lrp', 'chainage', 'id', 'model_type', 'name', 'lat', 'lon', 'length', 'condition', 'bridge_length'] # 'road_name'
 def save_data(df):
     '''
     Saves the files
