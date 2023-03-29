@@ -1,13 +1,5 @@
 import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
 import warnings
-import seaborn as sns
-import geopandas as gpd
-from scipy.spatial import cKDTree
-import requests
-from bs4 import BeautifulSoup
-import lxml
 
 warnings.filterwarnings('ignore')
 
@@ -16,20 +8,18 @@ df_network = pd.read_csv(network_link)
 
 traffic_link = './data/all_traffic_info.csv'
 df_traffic = pd.read_csv(traffic_link)
+df_traffic = df_traffic.replace('NS', 0) #Check of dit wel goed gaat! Bij np.nan volgens mij niet?
 
 def process_roads(df_network):
     """
 
     """
-
     # Makes a list of unique roads in the dataset
     unique_roads = df_network.road.unique()
+    # unique_roads = ['N1', 'N2', 'N3', 'N4']
 
-    #print(f'In total there are {len(relevant_roads)} relevant roads found, which are: {relevant_roads}.')
-    #print(f'The pre-processing of each road is done separately.')
-
-
-    unique_roads = ['N1', 'N2']
+    print(f'In total there are {len(unique_roads)} relevant roads found, which are: {unique_roads}.')
+    print(f'The pre-processing of each road is done separately.')
 
     # Processes all roads individually
     for i in unique_roads:
@@ -42,19 +32,15 @@ def assign_traffic(df_road, df_traffic):
     """
 
     """
-
     df_traffic = clean_traffic(df_traffic)
-    #print(df_traffic.head(5))
     df_matched = match_traffic(df_traffic, df_road)
     calculate_columns(df_matched)
     append_information(df_matched)
-    #concat_roads(df_matched)
-    #save_data()
 
 def clean_traffic(df_traffic):
+    """
 
-    # df.columns = df.columns.str.replace('[^a-zA-Z0-9]+', '')
-
+    """
     columns_traffic = ['LRP', 'Chainage', 'Heavy Truck', 'Medium Truck', 'Small Truck', 'Motorized']
     df_traffic = df_traffic.loc[:, columns_traffic]
 
@@ -68,16 +54,16 @@ def clean_traffic(df_traffic):
 
     df_traffic = df_traffic.astype(convert_dict)
 
-    agg_functions = {'LRP': 'first', 'Heavy Truck': 'sum', 'Medium Truck': 'sum', \
-                     'Small Truck': 'sum', 'Motorized': 'sum'} # , 'Chainage Start': 'first'
-
-    # create new DataFrame by combining rows with same id values
+    agg_functions = {'LRP': 'first', 'Heavy Truck': 'sum', 'Medium Truck': 'sum', 'Small Truck': 'sum', 'Motorized': 'sum'}
     df_traffic = df_traffic.groupby(df_traffic['Chainage']).aggregate(agg_functions)
     df_traffic.reset_index()
 
     return df_traffic
 
 def match_traffic(df_traffic, df_road):
+    """
+
+    """
     # Find match in chainage
     df_test = pd.merge(df_road, df_traffic, left_on='chainage', right_on='Chainage')
     df_test2 = pd.concat([df_test, df_road])
@@ -90,29 +76,51 @@ def match_traffic(df_traffic, df_road):
     df_test6['chainage'] = df_test6.chainage.astype(str).str.replace('.', '').astype(float)
     df_test8 = df_test6.drop_duplicates()
 
-    #print(df_test8.head(5))
-
     df_road = df_test8
     return df_road
 
 def calculate_columns(df_matched):
+    """
+
+    """
     df_matched['Truck number'] = df_matched['Heavy Truck'] + df_matched['Medium Truck'] + df_matched['Small Truck']
     df_matched['Truck percentage'] = df_matched['Truck number'] / df_matched['Motorized']
 
-    df_matched.to_csv('./data/testmatchtraffic.csv')
-
-    print(df_matched)
-
 traffic_road_list = []
 def append_information(df_road):
-    traffic_road_list.append(df_road)
+    """
 
+    """
+    traffic_road_list.append(df_road)
     return traffic_road_list
 
 def concat_roads():
-    pass
+    """
 
-def save_data():
-    pass
+    """
+    df_all_roads = pd.DataFrame()  # initialize empty dataframe, columns=column_names
+
+    print('All roads are pre-processed. The seperate files are being combined, completed and presented (figure and csv exports).')
+
+    for df in traffic_road_list:
+        df_all_roads = pd.concat([df_all_roads, df])  # append to df_all_roads in each iteration
+
+    df_all_roads = df_all_roads.reset_index()
+    save_data(df_all_roads)
+
+    print('The files are ready.')
+
+model_columns = ['road', 'lrp', 'id', 'lat', 'lon', 'condition', 'bridge_length', 'Truck number', 'Truck percentage']
+def save_data(df):
+    """
+
+    """
+    # Write the dataframe to csv
+    df.to_csv('./data/traffic_network_LB.csv')
+
+    # Make compact datafile and export to csv
+    df_all_roads_compact = df.loc[:, model_columns]
+    df_all_roads_compact.to_csv('./data/traffic_network_compact_LB.csv')
 
 process_roads(df_network)
+concat_roads()
