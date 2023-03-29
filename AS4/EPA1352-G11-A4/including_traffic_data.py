@@ -46,9 +46,10 @@ def assign_traffic(df_road, road):
     df_traffic = open_traffic_file(road)
     df_traffic = df_traffic_N1
     df_traffic = clean_traffic(df_traffic)
-    match_traffic(df_traffic, df_road)
-    concat_roads()
-    save_data()
+    df_matched = match_traffic(df_traffic, df_road)
+    calculate_columns(df_matched)
+    #concat_roads(df_matched)
+    #save_data()
 
 def open_traffic_file(road):
     """
@@ -80,10 +81,30 @@ def clean_traffic(df_traffic):
 
 def match_traffic(df_traffic, df_road):
     # Find match in chainage
-    df_test = pd.merge(df_road, df_traffic, left_on='chainage', right_on='Chainage Start' )
-    print(df_test.head(5))
+    df_test = pd.merge(df_road, df_traffic, left_on='chainage', right_on='Chainage Start')
+    df_test2 = pd.concat([df_test, df_road])
+    df_test3 = df_test2.drop_duplicates()
+    df_test4 = df_test3.sort_values('chainage')
+    df_test5 = df_test4.reset_index()
+    df_test5 = df_test5.drop('index', axis=1)
+    df_test5[['condition', 'bridge_length']] = df_test5[['condition', 'bridge_length']].fillna('NaN')
+    df_test6 = df_test5.fillna(method='ffill')
+    df_test6['chainage'] = df_test6.chainage.astype(str).str.replace('.', '').astype(float)
+    df_test8 = df_test6.drop_duplicates()
 
+    print(df_test8.head(5))
+
+    df_test8.to_csv('./data/testmatchtraffic.csv')
+
+    df_road = df_test8
     return df_road
+
+def calculate_columns(df_matched):
+    df_matched['Truck number'] = df_matched['Heavy Truck'] + df_matched['Medium Truck'] + df_matched['Small Truck']
+    df_matched['Truck percentage'] = df_matched['Truck number'] / df_matched['Motorized']
+
+    print(df_matched)
+
 
 def concat_roads():
     pass
