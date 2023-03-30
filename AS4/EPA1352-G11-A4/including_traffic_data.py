@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import warnings
 
 warnings.filterwarnings('ignore')
@@ -16,7 +17,7 @@ def process_roads(df_network):
     """
     # Makes a list of unique roads in the dataset
     unique_roads = df_network.road.unique()
-    # unique_roads = ['N1', 'N2', 'N3', 'N4']
+    #unique_roads = ['N1', 'N2', 'N3', 'N4']
 
     print(f'In total there are {len(unique_roads)} relevant roads found, which are: {unique_roads}.')
     print(f'The pre-processing of each road is done separately.')
@@ -71,13 +72,31 @@ def match_traffic(df_traffic, df_road):
     df_test4 = df_test3.sort_values('chainage')
     df_test5 = df_test4.reset_index()
     df_test5 = df_test5.drop('index', axis=1)
-    df_test5[['condition', 'bridge_length']] = df_test5[['condition', 'bridge_length']].fillna('NaN')
-    df_test6 = df_test5.fillna(method='ffill')
-    df_test6['chainage'] = df_test6.chainage.astype(str).str.replace('.', '').astype(float)
-    df_test8 = df_test6.drop_duplicates()
+    df_test6 = generate_segments(df_test5)
+    df_test6[['condition', 'bridge_length']] = df_test6[['condition', 'bridge_length']].fillna('NaN')
+    df_test7 = df_test6.fillna(method='ffill')
+    df_test7['chainage'] = df_test7.chainage.astype(str).str.replace('.', '').astype(float)
+    df_test8 = df_test7.drop_duplicates()
+    df_test9 = df_test8.replace('NaN', np.nan)
 
-    df_road = df_test8
+    df_road = df_test9
     return df_road
+
+def generate_segments(df_road):
+    """
+
+    """
+    road = df_road.road.unique()[0]
+    segment = 1
+    for index, row in df_road.iterrows():
+        if not pd.isna(row['Medium Truck']):
+            segment_id = f"{road}_{segment}"
+            df_road.at[index, 'road segment'] = segment_id
+            segment += 1
+        else:
+            df_road.at[index, 'road segment'] = np.nan
+    return df_road
+
 
 def calculate_columns(df_matched):
     """
@@ -110,7 +129,7 @@ def concat_roads():
 
     print('The files are ready.')
 
-model_columns = ['road', 'lrp', 'id', 'lat', 'lon', 'condition', 'bridge_length', 'Truck number', 'Truck percentage']
+model_columns = ['road', 'road segment', 'lrp', 'id', 'lat', 'lon', 'condition', 'bridge_length', 'Truck number', 'Truck percentage']
 def save_data(df):
     """
 
