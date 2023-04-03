@@ -77,8 +77,12 @@ def match_traffic(df_traffic, df_road):
     df_test4 = df_test3.sort_values('chainage')
     df_test5 = df_test4.reset_index()
     df_test5 = df_test5.drop('index', axis=1)
+
+    # assign road segments
     df_test6 = generate_segments(df_test5)
     df_test6[['condition', 'bridge_length']] = df_test6[['condition', 'bridge_length']].fillna('NaN')
+
+    # assign traffic volumes between measure points
     df_test7 = df_test6.fillna(method='ffill')
     df_test7['chainage'] = df_test7.chainage.astype(str).str.replace('.', '').astype(float)
     df_test8 = df_test7.drop_duplicates()
@@ -89,7 +93,7 @@ def match_traffic(df_traffic, df_road):
 
 def generate_segments(df_road):
     """
-
+    recognises different road parts when traffic information is not empty
     """
     road = df_road.road.unique()[0]
     segment = 1
@@ -102,25 +106,34 @@ def generate_segments(df_road):
             df_road.at[index, 'road segment'] = np.nan
     return df_road
 
-
 def calculate_columns(df_matched):
     """
-
+    generates columns with the number of trucks and a truck percentage
     """
     df_matched['Truck number'] = df_matched['Heavy Truck'] + df_matched['Medium Truck'] + df_matched['Small Truck']
     df_matched['Truck percentage'] = df_matched['Truck number'] / df_matched['Motorized']
 
+    return df_matched
+
 traffic_road_list = []
 def append_information(df_road):
     """
-
+    appends the dataframe of each processed road to a list
     """
     traffic_road_list.append(df_road)
     return traffic_road_list
 
+def expand_condition(df_road):
+    """
+    expands the bridge condition into four columns, where the row equals value 1 if there is a bridge with a certain condition
+    """
+    expanded_df = pd.get_dummies(df_road['condition'], prefix='condition')
+    df_expanded = pd.concat([df_road, expanded_df], axis=1)
+    return df_expanded
+
 def concat_roads():
     """
-
+    combines the dataframes of all individual roads into one dataframe
     """
     df_all_roads = pd.DataFrame()  # initialize empty dataframe, columns=column_names
 
@@ -130,14 +143,16 @@ def concat_roads():
         df_all_roads = pd.concat([df_all_roads, df])  # append to df_all_roads in each iteration
 
     df_all_roads = df_all_roads.reset_index()
+    df_all_roads = expand_condition(df_all_roads)
     save_data(df_all_roads)
 
     print('The files are ready.')
 
-model_columns = ['road', 'road segment', 'lrp', 'id', 'lat', 'lon', 'condition', 'bridge_length', 'Truck number', 'Truck percentage']
+model_columns = ['road', 'road segment', 'lrp', 'id', 'lat', 'lon', 'condition', 'bridge_length', 'Truck number', 'Truck percentage', \
+                 'condition_A', 'condition_B', 'condition_C', 'condition_D']
 def save_data(df):
     """
-
+    saves the data frame to csv files
     """
     # Write the dataframe to csv
     df.to_csv('./data/traffic_network_LB.csv')
