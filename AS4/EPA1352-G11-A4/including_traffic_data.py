@@ -40,7 +40,10 @@ def assign_traffic(df_road, df_traffic):
 
 def clean_traffic(df_traffic):
     """
-
+    cleans the traffic information of the relevant road,
+    generates the columns of interest,
+    converts the values to the right data types,
+    groups the traffic information per chainage to obtain the right metric for analysis
     """
     columns_traffic = ['LRP', 'Chainage', 'Heavy Truck', 'Medium Truck', 'Small Truck', 'Motorized']
     df_traffic = df_traffic.loc[:, columns_traffic]
@@ -63,7 +66,9 @@ def clean_traffic(df_traffic):
 
 def match_traffic(df_traffic, df_road):
     """
-
+    matches the traffic data to the road data, based on chainage
+    generates road segments
+    fills in missing values of traffic volume with forward fill
     """
     # Find match in chainage
     df_test = pd.merge(df_road, df_traffic, left_on='chainage', right_on='Chainage')
