@@ -27,9 +27,9 @@ print(criticality_df_grouped)
 print(criticality_df_grouped.nlargest(10, 'Truck percentage'))
 print(criticality_df_grouped.nlargest(10, 'Truck number'))
 
-#sns.histplot(criticality_df_grouped, x='Truck number')
+sns.histplot(criticality_df_grouped, x='Truck number')
 sns.histplot(criticality_df_grouped, x='Truck percentage')
-#plt.show()
+plt.show()
 
 
 '''
