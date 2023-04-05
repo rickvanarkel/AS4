@@ -78,16 +78,23 @@ def create_graph(G):
 def create_colored_network(G):
     pos = nx.get_node_attributes(G, 'pos')
 
-    print("pos is klaar")
-    weights = [G[u][v]['weight'] for u,v in G.edges()]
-    normalized_weights = [(w - min(weights)) / (max(weights) - min(weights)) for w in weights]
-    colormap = plt.cm.RdYlGn_r
+    exponent = 2
+    #weights = [G[u][v]['weight'] ** exponent for u, v in G.edges()]
+    weights = [G[u][v]['weight'] for u, v in G.edges()]
+    mean = np.nanmean(weights)
+    std = np.nanstd(weights)
+    normalized_weights = [(w - mean) / std for w in weights]
+    #normalized_weights = [(w - min(weights)) / (max(weights) - min(weights)) for w in weights]
+    #colormap = plt.cm.Wistia
+    colormap = plt.cm.copper_r
     edge_colors = [colormap(x) for x in normalized_weights]
 
+    #edge_widths = [w * 1 for w in normalized_weights]
     nx.draw_networkx(G, pos=pos, edge_color=edge_colors, node_color= "none", with_labels=False)
 
     plt.axis()
     plt.show()
+
 
 
 

@@ -22,10 +22,7 @@ criticality_df = analysis_df.loc[:, criticality_columns2]
 
 criticality_df_grouped = criticality_df.groupby('road segment').mean()
 criticality_df_grouped = criticality_df_grouped.reset_index()
-#criticality_df_grouped = criticality_df_grouped.sort_values('Truck number', ascending=False)
 total_df_grouped = criticality_df_grouped.copy()
-
-
 
 analyze_columns_L = ['road segment', 'Heavy Truck', 'Medium Truck', 'Small Truck']
 criticality_df_heavy = criticality_df_grouped.loc[:, analyze_columns_L]
@@ -34,15 +31,23 @@ for_loop = ['Heavy Truck', 'Medium Truck', 'Small Truck']
 for i in for_loop:
     print(f'This DF shows the most critical segments sorted on the number of {i}: \n {criticality_df_heavy.nlargest(10, i)} \n')
 
-road_dict = rn.make_points_edges(analysis_df, id_l='id')
+analysis_df['weighted_total'] = analysis_df['Heavy Truck'] + 2*analysis_df['Medium Truck'] + 3*analysis_df['Small Truck']
+
+road_dict = rn.make_points_edges(analysis_df, weight_label="Heavy Truck", id_l='id')
 G = rn.make_networkx(road_dict, analysis_df)
 rn.create_colored_network(G)
 
-total_df_grouped['weighted_total'] = total_df_grouped['Heavy Truck'] + 2*total_df_grouped['Medium Truck'] + 3*total_df_grouped['Small Truck']
-print(f'This DF shows the most critical segments sorted on the weighted total of trucks: \n {total_df_grouped.nlargest(10, "weighted_total")} \n')
+road_dict = rn.make_points_edges(analysis_df, weight_label="Medium Truck", id_l='id')
+G = rn.make_networkx(road_dict, analysis_df)
+rn.create_colored_network(G)
 
+road_dict = rn.make_points_edges(analysis_df, weight_label="Small Truck", id_l='id')
+G = rn.make_networkx(road_dict, analysis_df)
+rn.create_colored_network(G)
 
-
+road_dict = rn.make_points_edges(analysis_df, weight_label="weighted_total", id_l='id')
+G = rn.make_networkx(road_dict, analysis_df)
+rn.create_colored_network(G)
 
 
 '''
