@@ -1,7 +1,5 @@
 affine @ file:///Users/ktietz/demo/mc3/conda-bld/affine_1629890479180/work
 alabaster @ file:///home/ktietz/src/ci/alabaster_1611921544520/work
-anaconda-client==1.11.1
-anaconda-navigator==2.3.2
 anyio @ file:///C:/ci/anyio_1644481921011/work/dist
 appdirs==1.4.4
 argon2-cffi @ file:///opt/conda/conda-bld/argon2-cffi_1645000214183/work
