@@ -4,6 +4,8 @@ import networkx as nx
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib as mpl
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 
 """
@@ -62,38 +64,35 @@ def create_graph(G):
     pos = nx.get_node_attributes(G, 'pos')
 
     nx.draw_networkx(G, pos=pos, node_color='k', with_labels=False)
-    nx.draw_networkx(G, pos=pos, node_size=10, with_labels=False) # draw nodes and edges
-    #nx.draw_networkx_labels(G, pos=pos)  # draw node labels/names
+    nx.draw_networkx(G, pos=pos, node_size=10, with_labels=False)
 
-    # Get the nodes with more than 2 edges
     nodes_with_more_than_2_edges = [node for node, degree in dict(G.degree()).items() if degree > 2]
     nx.draw_networkx_nodes(G, pos, nodelist=nodes_with_more_than_2_edges, node_color='r', node_size=50)
 
-    # draw edge weights
-    # labels = nx.get_edge_attributes(G, 'weight')
-    # nx.draw_networkx_edge_labels(G, pos, edge_labels=labels)
     plt.axis()
     plt.show()
 
 def create_colored_network(G):
     pos = nx.get_node_attributes(G, 'pos')
 
-    exponent = 2
-    #weights = [G[u][v]['weight'] ** exponent for u, v in G.edges()]
     weights = [G[u][v]['weight'] for u, v in G.edges()]
     mean = np.nanmean(weights)
     std = np.nanstd(weights)
     normalized_weights = [(w - mean) / std for w in weights]
-    #normalized_weights = [(w - min(weights)) / (max(weights) - min(weights)) for w in weights]
-    #colormap = plt.cm.Wistia
+
     colormap = plt.cm.copper_r
     edge_colors = [colormap(x) for x in normalized_weights]
 
-    #edge_widths = [w * 1 for w in normalized_weights]
-    nx.draw_networkx(G, pos=pos, edge_color=edge_colors, node_color= "none", with_labels=False)
+    fig, ax = plt.subplots()
+    nx.draw_networkx(G, pos=pos, edge_color=edge_colors, node_color= "none", with_labels=False, ax=ax)
 
-    plt.axis()
-    plt.show()
+    divider = make_axes_locatable(ax)
+    cax = divider.append_axes("right", size="5%", pad=0.1)
+    cbar = mpl.colorbar.ColorbarBase(cax, cmap=colormap, values=np.arange(min(weights), max(weights), ((max(weights)-min(weights))/20)))
+    cbar.ax.tick_params(labelsize=10)
+
+    return fig
+
 
 
 
