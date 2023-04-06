@@ -1,21 +1,20 @@
 import warnings
 warnings.filterwarnings('ignore')
 import networkx as nx
-import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 
-"""
-This function creates a dictionary which contains all roads as a key and a list with three lists as a output
-
-- temp_points = Contains de coordinates of the points
-- temp_edges = Contains all edges in the right order
-- point_id = Contains all the node ID's in the right order
-"""
 def make_points_edges(df, weight_label = 'length', id_l = "id"):
+    """
+    This function takes a pandas DataFrame containing GPS data and converts it into a dictionary of road segments,
+    where each road segment is represented by a tuple of points, edges and point IDs. It iterates over each unique
+    road type and creates a separate dictionary entry for each one. It then loops over each row in the DataFrame and
+    appends the point coordinates, point IDs, and edge information (if applicable) to the appropriate tuple in the dictionary.
+
+    """
     road_dict = {}
     roads = df['road'].unique()
 
@@ -38,10 +37,14 @@ def make_points_edges(df, weight_label = 'length', id_l = "id"):
 
     return road_dict
 
-"""
-This function uses the road dict to add all points as nodes and then sets edges for each of the nodes
-"""
+
+
 def make_networkx(road_dict, df):
+    """
+    This function takes the dictionary of road segments and a pandas DataFrame and creates a NetworkX graph object
+    representing the road network.  It iterates over each road type, extracts the point coordinates, edge information,
+    and point IDs for each segment, and adds nodes and edges to the graph object accordingly.
+    """
     G = nx.Graph()
     roads_temp = df['road'].unique()
     for roads in roads_temp:
@@ -57,9 +60,6 @@ def make_networkx(road_dict, df):
 
     return G
 
-"""
-This function is used to create the visual of the networkx graph
-"""
 def create_graph(G):
     pos = nx.get_node_attributes(G, 'pos')
 
@@ -73,25 +73,36 @@ def create_graph(G):
     plt.show()
 
 def create_colored_network(G):
+    # Extract node positions from networkx graph
     pos = nx.get_node_attributes(G, 'pos')
 
+    # Get edge weights from networkx graph
     weights = [G[u][v]['weight'] for u, v in G.edges()]
+
+    # Compute mean and standard deviation of edge weights
     mean = np.nanmean(weights)
     std = np.nanstd(weights)
+
+    # Normalize edge weights using z-score
     normalized_weights = [(w - mean) / std for w in weights]
 
     colormap = plt.cm.copper_r
+    # Assign a color to each edge based on its normalized weight
     edge_colors = [colormap(x) for x in normalized_weights]
 
     fig, ax = plt.subplots()
-    nx.draw_networkx(G, pos=pos, edge_color=edge_colors, node_color= "none", with_labels=False, ax=ax)
+    nx.draw_networkx(G, pos=pos, edge_color=edge_colors, node_color="none", with_labels=False, ax=ax)
 
+    # Create a colorbar for the edge weights
     divider = make_axes_locatable(ax)
     cax = divider.append_axes("right", size="5%", pad=0.1)
-    cbar = mpl.colorbar.ColorbarBase(cax, cmap=colormap, values=np.arange(min(weights), max(weights), ((max(weights)-min(weights))/20)))
+    cbar = mpl.colorbar.ColorbarBase(cax, cmap=colormap,
+                                      values=np.arange(min(weights), max(weights),
+                                      ((max(weights)-min(weights))/20)))
     cbar.ax.tick_params(labelsize=10)
 
     return fig
+
 
 
 
